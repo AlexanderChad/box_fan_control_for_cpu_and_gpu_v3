@@ -1,0 +1,5 @@
+/host/config.json
+venv
+__pycache__
+/client/*.dll
+/client/pyngjvt.py
