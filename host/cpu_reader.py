@@ -35,7 +35,7 @@ class CpuTempReader:
                 self.cpu_count = 1
 
             self._initialized = True
-            print(f"CPU sockets detected: {self.cpu_count}")
+            logger.info(f"CPU sockets detected: {self.cpu_count}")
         except Exception as e:
             logger.warning(f"Failed to detect CPU count: {e}")
             self.cpu_count = 1

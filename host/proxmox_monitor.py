@@ -185,9 +185,9 @@ class ProxmoxMonitor:
             if host_pci in self.pci_to_vm:
                 vm_id = self.pci_to_vm[host_pci]
                 self.uuid_to_vm[uuid] = vm_id
-                print(f"GPU {uuid[:8]}... -> PCI {host_pci} -> VM {vm_id}")
+                logger.debug(f"GPU {uuid[:8]}... -> PCI {host_pci} -> VM {vm_id}")
             else:
-                print(f"GPU {uuid[:8]}... -> PCI {host_pci} -> FREE")
+                logger.debug(f"GPU {uuid[:8]}... -> PCI {host_pci} -> FREE")
 
     def get_gpu_status(self, uuid: str) -> dict:
         """

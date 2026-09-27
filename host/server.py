@@ -95,14 +95,11 @@ async def lifespan(app: FastAPI):
     global proxmox, statsd, cpu_reader, state, pwm, pwm_task, proxmox_task
 
     # Startup
-    print("=" * 60)
-    print("Fan Control - Host Server")
-    print("=" * 60)
-    print()
+    logger.info("Fan Control - Host Server starting")
 
     proxmox = ProxmoxMonitor()
     proxmox.refresh()
-    print(f"Proxmox VMs: {len(proxmox.vms)}, Running: {len(proxmox.running_vms)}")
+    logger.info(f"Proxmox VMs: {len(proxmox.vms)}, Running: {len(proxmox.running_vms)}")
 
     statsd = StatsDExporter()
     state = StateManager(proxmox, statsd)
@@ -119,17 +116,7 @@ async def lifespan(app: FastAPI):
     # Start background tasks
     pwm_task = asyncio.create_task(pwm_update_loop())
     proxmox_task = asyncio.create_task(proxmox_update_loop())
-    print("Background tasks started")
-    print()
-    print(f"  Web UI:      http://{SERVER_HOST}:{SERVER_PORT}/")
-    print(f"  VM WebSocket: ws://{SERVER_HOST}:{SERVER_PORT}/ws/vm")
-    print()
-    print("  Proxmox integration:")
-    print("  - VM configs: /etc/pve/qemu-server/")
-    print("  - VM status: qm list")
-    print()
-    print("Press Ctrl+C to stop")
-    print("=" * 60)
+    logger.info(f"Background tasks started. Web UI: http://{SERVER_HOST}:{SERVER_PORT}/, VM WebSocket: ws://{SERVER_HOST}:{SERVER_PORT}/ws/vm")
 
     yield
 
@@ -147,7 +134,7 @@ async def lifespan(app: FastAPI):
 
     pwm.set_auto_mode()
     statsd.close()
-    print("Shutdown complete")
+    logger.info("Shutdown complete")
 
 
 def create_app() -> FastAPI:
@@ -245,7 +232,7 @@ def create_app() -> FastAPI:
                     known_uuids = [u for u in uuids if state.is_known_gpu(u)]
                     state.ws_uuids[websocket] = known_uuids
 
-                    print(f"VM client registered: {len(known_uuids)} GPU(s)")
+                    logger.info(f"VM client registered: {len(known_uuids)} GPU(s)")
                     
                     # Send profiles for all known GPUs (including newly registered)
                     if known_uuids:

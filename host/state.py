@@ -72,7 +72,7 @@ class StateManager:
                 # Update ProxmoxMonitor with GPU PCI mappings
                 self.proxmox.set_gpu_config(self.gpu_config)
 
-                print(f"Config loaded from {self._config_path}: {len(self.gpu_config)} GPUs")
+                logger.info(f"Config loaded from {self._config_path}: {len(self.gpu_config)} GPUs")
             except Exception as e:
                 logger.error(f"Failed to load config: {e}")
 
@@ -85,7 +85,7 @@ class StateManager:
             }
             with open(self._config_path, 'w') as f:
                 json.dump(data, f, indent=2)
-            print(f"Config saved to {self._config_path}")
+            logger.info(f"Config saved to {self._config_path}")
         except Exception as e:
             logger.error(f"Failed to save config: {e}")
 
@@ -125,21 +125,21 @@ class StateManager:
         except:
             hostpci_index = -1
 
-        print(f"Registering GPU {uuid[:8]}... vm_pci={vm_pci_normalized}, hostpci_index={hostpci_index}")
+        logger.debug(f"Registering GPU {uuid[:8]}... vm_pci={vm_pci_normalized}, hostpci_index={hostpci_index}")
 
         # Find running VM and match host_pci
         matched_host_pci = None
         matched_vm_id = None
 
         running_vms = self.proxmox.get_running_vms_with_pci()
-        print(f"Running VMs with PCI: {running_vms}")
+        logger.debug(f"Running VMs with PCI: {running_vms}")
 
         for vm_id, pci_list in running_vms.items():
             # pci_list is ordered by hostpci index
             if hostpci_index >= 0 and hostpci_index < len(pci_list):
                 matched_host_pci = pci_list[hostpci_index]
                 matched_vm_id = vm_id
-                print(f"  VM {vm_id}: hostpci{hostpci_index} = {matched_host_pci}")
+                logger.debug(f"  VM {vm_id}: hostpci{hostpci_index} = {matched_host_pci}")
                 break
 
         # Check if this is a new GPU (not in config)
@@ -156,7 +156,7 @@ class StateManager:
             if matched_host_pci:
                 self.proxmox.uuid_to_host_pci[uuid] = matched_host_pci
 
-            print(f"NEW GPU registered: {uuid[:8]}... -> VM PCI {vm_pci} -> Host PCI {matched_host_pci or 'unknown'}")
+            logger.info(f"NEW GPU registered: {uuid[:8]}... -> VM PCI {vm_pci} -> Host PCI {matched_host_pci or 'unknown'}")
             self.save_config()
 
         elif matched_host_pci:
@@ -165,7 +165,7 @@ class StateManager:
             if current_host_pci != matched_host_pci:
                 self.gpu_config[uuid]["host_pci"] = matched_host_pci
                 self.proxmox.uuid_to_host_pci[uuid] = matched_host_pci
-                print(f"Updated GPU {uuid[:8]}... host_pci: {current_host_pci} -> {matched_host_pci}")
+                logger.info(f"Updated GPU {uuid[:8]}... host_pci: {current_host_pci} -> {matched_host_pci}")
                 self.save_config()
 
         # Rebuild UUID to VM mapping
